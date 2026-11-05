@@ -56,7 +56,7 @@ export default {
       const sleep = 100;
 
       while ( limit > 0 && !rootState.managementReady ) {
-        await setTimeout(() => {}, sleep);
+        await new Promise((resolve) => setTimeout(resolve, sleep));
         limit -= sleep;
       }
 
@@ -120,6 +120,10 @@ export default {
       return;
     }
 
+    if (rootState.prefs?.data?.[NAMESPACE_FILTERS] === undefined) {
+      await dispatch('prefs/loadServerQueued', null, { root: true });
+    }
+
     await dispatch('cleanNamespaces', null, { root: true });
 
     const namespaceFilterKey = createNamespaceFilterKeyWithId(id, 'harvester');
@@ -128,7 +132,7 @@ export default {
     commit('updateNamespaces', {
       filters: savedFilters || [],
       all:     getters.filterNamespace(),
-      getters
+      getters: rootGetters
     }, { root: true });
 
     // Solve compatibility with Rancher v2.6.x, fell remove these codes after not support v2.6.x
